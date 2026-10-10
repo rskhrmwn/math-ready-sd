@@ -1,0 +1,31 @@
+{
+ "name": "Tryout 1 Kelas 6 (25 soal)",
+ "duration_min": 60,
+ "question_ids": [
+  "MTH6-FRC-401",
+  "MTH6-FRC-402",
+  "MTH6-FRC-103",
+  "MTH6-PGK-301",
+  "MTH6-PGK-303",
+  "MTH6-FRC-108",
+  "MTH6-KPK-201",
+  "MTH6-PEC-204",
+  "MTH6-PGK-307",
+  "MTH6-FRC-113",
+  "MTH6-BDT-410",
+  "MTH6-SDT-213",
+  "MTH6-VIS-408",
+  "MTH6-KLL-208",
+  "MTH6-PGK-309",
+  "MTH6-KEC-220",
+  "MTH6-PGK-311",
+  "MTH6-KLL-411",
+  "MTH6-VOL-412",
+  "MTH6-KLL-224",
+  "MTH6-DAT-404",
+  "MTH6-DAT-407",
+  "MTH6-DAT-406",
+  "MTH6-DAT-405",
+  "MTH6-PGK-312"
+ ]
+}

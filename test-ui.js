@@ -1,0 +1,41 @@
+'use strict';
+// Uji antarmuka (jsdom) terhadap server sungguhan. Jalankan: node test-ui.js
+process.env.DATA_DIR = 'memory'; process.env.ADMIN_PASSWORD = 'AdminUji12345';
+const { JSDOM } = require('jsdom'); const fs = require('fs'); const assert = require('assert'); const { start } = require('./server');
+(async () => {
+  const { server } = await start(0); const base = 'http://127.0.0.1:' + server.address().port; let cookie = '';
+  const dom = new JSDOM('<!DOCTYPE html><div id="app"></div><div id="toast"></div>', { runScripts: 'outside-only', url: base + '/', pretendToBeVisual: true });
+  const w = dom.window, errs = [];
+  w.fetch = async (u, o = {}) => { const r = await fetch(base + u, { ...o, headers: { ...(o.headers || {}), cookie } }); const sc = r.headers.get('set-cookie'); if (sc) cookie = sc.startsWith('sid=;') ? '' : sc.split(';')[0]; return r; };
+  w.confirm = () => true; w.scrollTo = () => {}; w.print = () => {}; w.addEventListener('error', (e) => errs.push(e.message));
+  w.eval(fs.readFileSync('public/app.js', 'utf8'));
+  const $ = (s) => w.document.querySelector(s), $$ = (s) => [...w.document.querySelectorAll(s)];
+  const until = async (f, m) => { for (let i = 0; i < 150; i++) { try { if (f()) return; } catch {} await new Promise((r) => setTimeout(r, 40)); } throw new Error('Menunggu: ' + m); };
+  const submit = (f) => f.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  const click = (el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  const chg = (el) => el.dispatchEvent(new w.Event('change', { bubbles: true }));
+  const ok = (n) => console.log('  ✓ ' + n);
+  const login = async (u, p) => { await until(() => $('#u'), 'form login'); $('#u').value = u; $('#p').value = p; submit($('form')); };
+  await login('admin', 'salah'); await until(() => $('.msg.lo'), 'pesan gagal'); ok('login salah menampilkan pesan');
+  await login('admin', 'AdminUji12345'); await until(() => $('.tabs'), 'tab staf'); assert.equal($$('.tabs button').length, 7); ok('admin masuk, 7 tab tampil');
+  click($$('.tabs button').find((b) => b.textContent === 'Pengguna')); await until(() => $('#nu'), 'form pengguna');
+  $('#nu').value = 'guru6a'; $('#nn').value = 'Guru 6A'; submit($('form')); await until(() => $('#np .msg'), 'sandi guru'); const tpw = $('#np b:nth-of-type(2)').textContent; assert.ok(tpw.length === 12); ok('akun guru dibuat, kata sandi tampil sekali');
+  click($('[data-act=logout]')); await login('guru6a', tpw); await until(() => $('.tabs'), 'tab guru'); assert.equal($$('.tabs button').length, 5); ok('guru masuk, tab admin tidak tampil');
+  click($$('.tabs button').find((b) => b.textContent === 'Siswa')); await until(() => $('#ci'), 'form impor');
+  $('#ci').value = 'nama_lengkap,nama_panggilan,nisn,kelas,rombel,tahun_ajaran\nAhmad Uji,Ahmad,0099000001,6,6A,2026/2027\nDina Uji,Dina,0099000002,6,6A,2026/2027\nBad,Bad,123,6,6A,2026/2027'; submit($('form')); await until(() => $('.kd'), 'kartu login');
+  assert.equal($$('.kd').length, 2); assert.ok($('#im').textContent.includes('1 baris ditolak')); const kd = $$('.kd').map((k) => ({ nisn: k.querySelectorAll('b')[1].textContent, pin: k.querySelectorAll('b')[2].textContent })); ok('impor siswa menampilkan 2 kartu login dan 1 penolakan');
+  click($$('.tabs button').find((b) => b.textContent === 'Tugas')); await until(() => $('[data-act=periksa]'), 'tab tugas');
+  click($('[data-act=periksa]')); await until(() => $('#toast.on') && $('#toast').textContent.includes('25'), 'periksa'); await until(() => $('#pk'), 'form tugas');
+  $('#du').value = '2099-12-31'; submit($('form[data-sub=tugas]')); await until(() => $('#toast').textContent === 'Tugas dibuat', 'tugas dibuat'); ok('guru memeriksa paket dan membuat tugas');
+  click($('[data-act=logout]')); await login(kd[0].nisn, kd[0].pin); await until(() => $('[data-act=go]'), 'beranda siswa'); assert.ok($('h1').textContent.includes('Ahmad')); ok('siswa masuk dengan NISN + PIN dan melihat tugas');
+  click($('[data-act=go]')); await until(() => $('#card .q'), 'ujian'); assert.ok($('#tm').textContent.match(/^\d\d:\d\d$/)); assert.ok($('#card svg')); ok('ujian tampil dengan timer dan gambar');
+  for (let i = 0; i < 25; i++) { await until(() => $('#card .q'), 'soal'); const fs_ = $$('#card fieldset.pn'); if (fs_.length) { for (const f of fs_) { const i0 = f.querySelector('input'); i0.checked = true; chg(i0); await new Promise((r) => setTimeout(r, 10)); } } else { const inp = $('#card input'); if (inp) { inp.checked = true; chg(inp); } } await new Promise((r) => setTimeout(r, 30)); click($('#nx')); await new Promise((r) => setTimeout(r, 10)); }
+  await until(() => $('#sb'), 'tinjau'); assert.ok($('#card').textContent.includes('25 dari 25')); click($('#sb')); assert.ok($('#sb').textContent.includes('Yakin')); click($('#sb'));
+  await until(() => $('.big'), 'hasil'); console.log('    skor:', $('.big').textContent); assert.ok($('.rr')); ok('siswa menjawab 25 soal, mengumpulkan, dan melihat hasil dengan pembahasan');
+  click($('[data-act=home]')); await until(() => $$('.c').some((c) => c.textContent.includes('Penguasaanmu')), 'progres'); ok('beranda siswa menampilkan progres per elemen');
+  click($('[data-act=logout]')); await login('guru6a', tpw); await until(() => $('.tabs'), 'guru lagi');
+  await until(() => $('#as'), 'pilih tugas'); click($('[data-act=lihat]')); await until(() => $('#hs table'), 'hasil kelas'); assert.ok($('#hs').textContent.includes('Ahmad') && $('#hs').textContent.includes('Dikumpulkan')); ok('guru melihat hasil kelas dan kesehatan soal');
+  click($$('.tabs button').find((b) => b.textContent === 'Soal')); await until(() => $('#sl table'), 'daftar soal'); assert.ok($$('#sl tr').length > 60); ok('guru melihat bank soal (68 soal)');
+  console.log('\nGALAT SKRIP:', errs.length ? errs : 'tidak ada'); assert.equal(errs.length, 0);
+  console.log('\nUJI ANTARMUKA LOLOS'); server.close(); process.exit(0);
+})().catch((e) => { console.error('\nGAGAL:', e.message); process.exit(1); });

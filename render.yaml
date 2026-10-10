@@ -1,0 +1,23 @@
+# Cetak biru Render (paket gratis). Database TIDAK dibuat di Render: pakai Neon (gratis tanpa kedaluwarsa 30 hari).
+services:
+  - type: web
+    name: math-ready-sd
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: PGSSL
+        value: "1"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: ADMIN_PASSWORD
+        sync: false
