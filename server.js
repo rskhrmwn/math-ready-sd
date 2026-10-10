@@ -19,9 +19,9 @@ app.use((req, res, next) => {
   next();
 });
 const w = (f) => (req, res, next) => f(req, res, next).catch(next);
-const fails = new Map();
-const locked = (k) => { const a = (fails.get(k) || []).filter((t) => Date.now() - t < 900000); fails.set(k, a); return a.length >= (k.startsWith('ip:') ? 40 : 5); };
-const fail = (k) => { const a = fails.get(k) || []; a.push(Date.now()); fails.set(k, a); };
+// Pembatas percobaan masuk disimpan di database agar bekerja juga di Vercel (tiap permintaan bisa dilayani instans berbeda).
+const locked = async (k) => (await D.q("select count(*)::int c from login_attempts where key=$1 and at>now()-interval '15 minutes'", [k])).rows[0].c >= (k.startsWith('ip:') ? 40 : 5);
+const fail = (k) => D.q('insert into login_attempts(key) values($1)', [k]);
 const cookie = (req) => Object.fromEntries((req.headers.cookie || '').split(';').map((s) => s.trim().split('=')).filter((a) => a[0]));
 const audit = (req, uid, action, detail) => D.q('insert into audit_log(user_id,action,detail,ip) values($1,$2,$3::jsonb,$4)', [uid, action, JSON.stringify(detail || {}), req.ip]);
 async function newSession(res, uid) {
@@ -47,13 +47,13 @@ const mask = (n) => '••••••' + String(n).slice(-4);
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.post('/api/login', w(async (req, res) => {
   const u = String(req.body.username || '').trim().toLowerCase().slice(0, 64), p = String(req.body.password || '').slice(0, 128);
-  const ik = 'ip:' + req.ip, uk = 'u:' + u;
-  if (locked(ik) || locked(uk)) return res.status(429).json({ error: 'Terlalu banyak percobaan. Coba lagi 15 menit lagi.' });
+  const ik = ('ip:' + req.ip).slice(0, 80), uk = ('u:' + u).slice(0, 80);
+  if ((await locked(ik)) || (await locked(uk))) return res.status(429).json({ error: 'Terlalu banyak percobaan. Coba lagi 15 menit lagi.' });
   const r = await D.q('select id,role,pass_hash,display_name,active from users where username=$1', [u]);
   const row = r.rows[0];
   const ok = row && row.active ? await verify(p, row.pass_hash) : (await verify(p, DUMMY), false);
-  if (!ok) { fail(ik); fail(uk); await audit(req, null, 'login_gagal', { username: u.slice(0, 20) }); return res.status(401).json({ error: 'Nama pengguna atau kata sandi salah' }); }
-  fails.delete(uk); await D.q('delete from sessions where expires_at<now()'); await newSession(res, row.id); await audit(req, row.id, 'login', {});
+  if (!ok) { await fail(ik); await fail(uk); await audit(req, null, 'login_gagal', { username: u.slice(0, 20) }); return res.status(401).json({ error: 'Nama pengguna atau kata sandi salah' }); }
+  await D.q('delete from login_attempts where key=$1', [uk]); await D.q("delete from login_attempts where at<now()-interval '1 day'"); await D.q('delete from sessions where expires_at<now()'); await newSession(res, row.id); await audit(req, row.id, 'login', {});
   res.json({ ok: true, user: { role: row.role, display_name: row.display_name } });
 }));
 app.post('/api/logout', auth, w(async (req, res) => {
@@ -284,13 +284,18 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 app.use((req, res) => res.status(404).json({ error: 'Tidak ditemukan' }));
 app.use((err, req, res, next) => { console.error(err); res.status(500).json({ error: 'Terjadi kesalahan di server' }); });
 
+let readyP;
+// Menyiapkan database dan data awal sekali per instans (aman dipanggil berulang).
+function ready() {
+  if (!readyP) readyP = (async () => { await D.init(); DUMMY = await hash(crypto.randomBytes(8).toString('hex')); return B.ensure(hash); })().catch((e) => { readyP = null; throw e; });
+  return readyP;
+}
 async function start(port) {
-  await D.init(); DUMMY = await hash(crypto.randomBytes(8).toString('hex'));
-  const first = await B.ensure(hash);
+  const first = await ready();
   const server = await new Promise((ok) => { const s = app.listen(port, () => ok(s)); });
   return { server, first, app };
 }
-module.exports = { start, app };
+module.exports = { start, app, ready };
 if (require.main === module) {
   const port = parseInt(process.env.PORT || '3000', 10);
   start(port).then(({ first }) => {

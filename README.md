@@ -1,4 +1,4 @@
-# MATH READY SD (Fase 1, versi 0.1)
+# MATH READY SD (Fase 1, versi 0.3)
 
 Platform latihan matematika SD/MI kelas 4 sampai 6 dengan login siswa (NISN + PIN), guru, dan admin.
 Dibuat untuk Riski Hermawan, S.Pd., Wali Kelas 6A, SD Negeri Sapuro 05 Kota Pekalongan.
@@ -36,7 +36,25 @@ Pakai hanya di jaringan tepercaya dan hanya untuk uji coba. Untuk penggunaan sun
 4. **Soal**: periksa soal. **Tugas**: tekan "Tandai sudah diperiksa" bila Anda sudah memeriksa paket, lalu buat tugas untuk kelas.
 5. Siswa masuk dan mengerjakan. Guru melihat **Hasil kelas** dan **Kesehatan soal**.
 
-## Pemasangan gratis (GitHub + Render + Neon)
+## Pemasangan gratis tanpa kartu: Vercel + Neon + GitHub (disarankan)
+Render kini dapat meminta kartu untuk verifikasi. Vercel Hobby tidak meminta kartu, tetapi hanya untuk penggunaan **pribadi non-komersial**; baca syaratnya.
+- Kode: repository GitHub *private*. Database: Neon (Singapore). Fungsi server: Vercel, wilayah `sin1` (Singapore), diatur di `vercel.json`.
+- `api/index.js` adalah pintu masuk fungsi. Berkas statis ada di `public/`. Pembatas percobaan login disimpan di database.
+- Variabel lingkungan di Vercel: `DATABASE_URL`, `ADMIN_PASSWORD`, `PGSSL=1`, `COOKIE_SECURE=1`, `TRUST_PROXY=1`.
+- Pada pengaturan proyek: Framework Preset = Other, Build Command dikosongkan, Output Directory = `public`.
+- Start pertama pada database kosong membuat skema dan mengisi 68 soal (beberapa detik). Selanjutnya dilewati.
+- Menambah soal baru dari berkas CSV: jalankan `node seed.js` dengan `DATABASE_URL` di komputer Anda.
+- Ubah `schema.sql`? Jalankan `node tools/embed-schema.js` agar `schema.js` ikut diperbarui (`npm test` memeriksanya).
+
+## Uji coba sehari di laptop dengan terowongan Cloudflare (tanpa mengubah kode)
+```
+npm install
+$env:COOKIE_SECURE="1"; $env:TRUST_PROXY="1"; npm start          # PowerShell; catat kata sandi admin yang tampil
+cloudflared tunnel --url http://localhost:3000                   # jendela kedua; mencetak alamat https://....trycloudflare.com
+```
+Alamat berubah setiap kali dijalankan, tanpa jaminan ketersediaan, hanya untuk uji coba. Tutup kedua jendela setelah kelas. Data uji tersimpan di `data/pgdata` (hapus foldernya bila ingin mulai bersih).
+
+## Alternatif: GitHub + Render + Neon (Render dapat meminta kartu)
 Biaya Rp0, tanpa kartu kredit (per Oktober 2026; syarat paket gratis bisa berubah). Lihat dokumen "Panduan Pemasangan Gratis".
 - **GitHub** (repositori *private*): menyimpan kode dan memicu pemasangan otomatis. `.github/workflows/test.yml` menjalankan uji otomatis.
 - **Neon** (PostgreSQL gratis, wilayah Singapore): menyimpan data. Gunakan ini, **bukan** database gratis Render (kedaluwarsa 30 hari dan tanpa cadangan).

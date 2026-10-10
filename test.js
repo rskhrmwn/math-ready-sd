@@ -9,6 +9,7 @@ async function call(who, method, url, body, hdr = {}) {
   let j = null; try { j = await r.json(); } catch {} return { s: r.status, j };
 }
 const ok = (n) => console.log('  ✓ ' + n);
+require('fs').readFileSync; assert.equal(require('./schema.js').trim(), require('fs').readFileSync(__dirname + '/schema.sql', 'utf8').trim(), 'schema.js harus sama dengan schema.sql (jalankan: node tools/embed-schema.js)');
 (async () => {
   const { server } = await start(0); base = 'http://127.0.0.1:' + server.address().port;
   let r;

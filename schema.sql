@@ -87,3 +87,8 @@ create index if not exists idx_attempts_assignment on attempts(assignment_id);
 create index if not exists idx_answers_attempt on answers(attempt_id);
 create index if not exists idx_students_class on students(class_id);
 create index if not exists idx_sessions_exp on sessions(expires_at);
+create table if not exists meta(key text primary key, value text not null);
+create table if not exists login_attempts(
+  key text not null,
+  at timestamptz not null default now());
+create index if not exists idx_login_attempts on login_attempts(key, at);

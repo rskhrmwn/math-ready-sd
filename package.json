@@ -1,11 +1,13 @@
 {
   "name": "math-ready-sd",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "description": "MATH READY SD: platform belajar matematika SD kelas 4-6 (Fase 1)",
   "scripts": {
     "start": "node server.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "seed": "node seed.js",
+    "embed-schema": "node tools/embed-schema.js"
   },
   "engines": {
     "node": ">=20"

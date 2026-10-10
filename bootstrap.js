@@ -3,6 +3,10 @@
 const fs = require('fs'), path = require('path');
 const D = require('./db'), { parseCSV, password } = require('./util');
 async function ensure(hash) {
+  if (!process.env.SEED_FORCE) {
+    const c = (await D.q("select (select count(*)::int from questions) q, (select count(*)::int from packages) p, (select count(*)::int from users where role in ('admin','super_admin')) a")).rows[0];
+    if (c.q > 0 && c.p > 0 && c.a > 0) return null;
+  }
   const dir = path.join(__dirname, 'data');
   for (const f of ['soal_pecahan_draf', 'soal_tka_lanjutan_draf', 'soal_pgk_draf', 'soal_bergambar_draf']) {
     for (const r of parseCSV(fs.readFileSync(path.join(dir, f + '.csv'), 'utf8'))) {
