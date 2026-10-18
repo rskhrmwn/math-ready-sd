@@ -168,7 +168,15 @@
                 <div class="col-right">
                     <div class="card"><div class="card-title">Misi Hari Ini</div><div style="display:flex; flex-direction:column; gap:12px;"><div style="display:flex; align-items:center; gap:12px; font-size:0.9rem; font-weight:600;"><span style="background:var(--accent-mint); color:white; width:24px; height:24px; border-radius:6px; display:flex; justify-content:center; align-items:center;">✓</span> 1 Micro Lesson</div><div style="display:flex; align-items:center; gap:12px; font-size:0.9rem; font-weight:600;"><span style="background:var(--accent-mint); color:white; width:24px; height:24px; border-radius:6px; display:flex; justify-content:center; align-items:center;">✓</span> 5 Soal latihan</div><div style="display:flex; align-items:center; gap:12px; font-size:0.9rem; font-weight:600;"><span style="background:var(--accent-yellow); color:white; width:24px; height:24px; border-radius:6px; display:flex; justify-content:center; align-items:center;">!</span> 1 Tantangan</div></div></div>
                     <div class="card"><div class="card-title">Skor Kesiapan</div><div style="font-size:2.5rem; font-weight:800; font-family:var(--font-heading); margin-bottom:4px;" id="readinessScore">0%</div><div style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">Indikator internal, <strong>bukan nilai resmi TKA.</strong></div></div>
-                    <div class="card"><div class="card-title">📕 Buku Kesalahanku</div><div class="mistake-box"><h4>Pecahan senilai</h4><p>Kamu masih tertukar antara pembilang dan penyebut.</p></div></div>
+                    
+                    <!-- BUKU KESALAHANKU -->
+                    <div class="card">
+                        <div class="card-title">📕 Buku Kesalahanku</div>
+                        <div id="mistakeList">
+                            <!-- Diisi otomatis oleh JavaScript -->
+                            <p style="font-size:0.85rem; color:var(--text-muted);">Belum ada data kesalahan. Ayo kerjakan tes!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -283,7 +291,6 @@
             }
             if (window.innerWidth <= 768) sidebar.classList.remove('mobile-open');
             
-            // Panggil fetchGuruData yang sekarang akan sekaligus merender chart
             if (viewId === 'view-guru') { fetchGuruData(); }
             if (viewId === 'view-admin') fetchAdminData();
         }
@@ -295,12 +302,11 @@
             if (html.getAttribute('data-theme') === 'dark') { html.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); } 
             else { html.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
             renderDashboardCharts(); 
-            // Render ulang chart guru jika sedang di halaman guru
             if(document.getElementById('view-guru').classList.contains('active')) fetchGuruData(); 
         });
         if (localStorage.getItem('theme') === 'dark') html.setAttribute('data-theme', 'dark');
 
-        // === TARIK DATA GURU & HITUNG RATA-RATA GRAFIK ===
+        // === TARIK DATA GURU ===
         let teacherChartInstance = null;
         async function fetchGuruData() {
             const tbody = document.getElementById('tableGuruBody');
@@ -313,38 +319,33 @@
                 if(data.length === 0) { 
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Belum ada data.</td></tr>'; 
                     document.getElementById('totalSiswa').innerText = '0';
-                    renderTeacherChart([0,0,0,0]); // Tampilkan 0 jika kosong
+                    renderTeacherChart([0,0,0,0]);
                     return; 
                 }
                 
                 data.reverse();
                 document.getElementById('totalSiswa').innerText = data.length;
 
-                // --- HITUNG RATA-RATA UNTUK GRAFIK ---
                 let totalBilangan = 0, totalGeometri = 0, totalData = 0, totalPenalaran = 0;
                 
                 data.forEach(row => {
-                    // Tampilkan ke tabel
                     const tr = document.createElement('tr');
                     const readiness = parseInt(row[7]) || 0;
                     const status = readiness >= 70 ? '<span class="tag tag-green">Tuntas</span>' : '<span class="tag tag-red">Remedial</span>';
                     tr.innerHTML = `<td><strong>${row[1]}</strong></td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[6]}</td><td><strong>${readiness}</strong></td><td>${status}</td>`;
                     tbody.appendChild(tr);
 
-                    // Jumlahkan nilai untuk rata-rata
                     totalBilangan += parseInt(row[3]) || 0;
                     totalGeometri += parseInt(row[4]) || 0;
                     totalData += parseInt(row[5]) || 0;
                     totalPenalaran += parseInt(row[6]) || 0;
                 });
 
-                // Hitung rata-rata
                 const avgBilangan = Math.round(totalBilangan / data.length);
                 const avgGeometri = Math.round(totalGeometri / data.length);
                 const avgData = Math.round(totalData / data.length);
                 const avgPenalaran = Math.round(totalPenalaran / data.length);
 
-                // Render Chart dengan data asli
                 renderTeacherChart([avgBilangan, avgGeometri, avgData, avgPenalaran]);
 
             } catch (error) { 
@@ -525,6 +526,30 @@
             return scores;
         }
 
+        // --- FUNGSI MENCATAT KESALAHAN ---
+        function getWrongQuestions() {
+            let mistakes = [];
+            questionsData.forEach((q, index) => {
+                let ua = userAnswers[index] || [];
+                let ca = q.correctAnswer || [];
+                ua.sort((a,b) => a-b);
+                ca.sort((a,b) => a-b);
+                let isCorrect = ua.length === ca.length && ua.every((val, i) => val === ca[i]);
+
+                if (!isCorrect) {
+                    let studentAnswerText = ua.map(idx => q.options[idx]).join(', ') || "Tidak dijawab";
+                    let correctAnswerText = ca.map(idx => q.options[idx]).join(', ');
+                    mistakes.push({
+                        domain: q.domain,
+                        question: q.question,
+                        studentAnswer: studentAnswerText,
+                        correctAnswer: correctAnswerText
+                    });
+                }
+            });
+            return mistakes;
+        }
+
         async function nextQuestion() {
             userAnswers[currentQuestionIndex] = [...selectedOptions];
 
@@ -536,8 +561,10 @@
                 document.getElementById('diag-loading').style.display = 'flex';
                 
                 const scores = calculateScores();
+                const mistakes = getWrongQuestions(); // Ambil data kesalahan
                 
                 localStorage.setItem('math_ready_scores', JSON.stringify(scores));
+                localStorage.setItem('math_ready_mistakes', JSON.stringify(mistakes)); // Simpan kesalahan
                 localStorage.setItem('student_name', studentName);
 
                 const dataToSend = { nama: studentName, kelas: studentClass, bilangan: scores.bilangan, geometri: scores.geometri, skorData: scores.data, penalaran: scores.penalaran, readiness: scores.readiness };
@@ -548,7 +575,7 @@
             }
         }
 
-        // === CHART DASHBOARD SISWA ===
+        // === CHART DASHBOARD SISWA & BUKU KESALAHAN ===
         function renderDashboardCharts() {
             let data = { bilangan: 0, geometri: 0, data: 0, penalaran: 0, readiness: 0 };
             const savedData = localStorage.getItem('math_ready_scores');
@@ -571,7 +598,40 @@
                 const ctx = document.getElementById(stat.id).getContext('2d');
                 new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [stat.value, 100 - stat.value], backgroundColor: [stat.color, trackColor], borderWidth: 0, cutout: '80%' }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 1500 }, plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
             });
+
+            renderMistakes(); // Panggil fungsi render buku kesalahan
         }
+
+        // --- FUNGSI TAMPILKAN BUKU KESALAHAN ---
+        function renderMistakes() {
+            const container = document.getElementById('mistakeList');
+            const savedMistakes = localStorage.getItem('math_ready_mistakes');
+            
+            if (!savedMistakes) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding: 20px 0;">Belum ada data kesalahan. Ayo kerjakan tes untuk melihat di mana letak kesulitanmu!</p>';
+                return;
+            }
+
+            const mistakes = JSON.parse(savedMistakes);
+            if (mistakes.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 20px 0;"><div style="font-size: 2.5rem; margin-bottom: 8px;">🌟</div><p style="font-size:0.9rem; color:var(--accent-mint); font-weight:700;">Luar biasa! Semua jawabanmu benar.</p></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            mistakes.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'mistake-box';
+                div.innerHTML = `
+                    <h4>${m.domain}</h4>
+                    <p style="font-weight: 700; margin-bottom: 8px; color: var(--text-main); font-size: 0.85rem;">${m.question}</p>
+                    <p style="color: var(--accent-coral); margin-bottom: 4px; font-weight: 600;">❌ Jawabanmu: ${m.studentAnswer}</p>
+                    <p style="color: var(--accent-mint); font-weight: 600;">✅ Kunci: ${m.correctAnswer}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', renderDashboardCharts);
     </script>
 </body>
