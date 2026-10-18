@@ -103,23 +103,36 @@
             .topbar { flex-direction: column; gap: 16px; } .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .journey-timeline { flex-wrap: wrap; gap: 16px; } .journey-line { display: none; } .journey-step { width: 45%; }
         }
-        #diagnosticScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-base); z-index: 999; overflow-y: auto; padding: 24px; }
-        .diag-container { max-width: 600px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
-        .diag-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; }
+
+        /* --- STYLE CBT (COMPUTER BASED TEST) --- */
+        #diagnosticScreen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-base); z-index: 999; overflow-y: auto; flex-direction: column; }
+        .cbt-header { background: var(--bg-surface); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 10; }
+        .cbt-timer { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: var(--accent-coral); display: flex; align-items: center; gap: 8px; background: rgba(244,63,94,0.1); padding: 8px 16px; border-radius: 8px; }
+        .cbt-body { flex-grow: 1; padding: 24px; max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; }
+        .cbt-footer { background: var(--bg-surface); padding: 16px 24px; display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); position: sticky; bottom: 0; z-index: 10; }
+        
+        .diag-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; padding: 24px; }
         .diag-welcome-icon { font-size: 5rem; margin-bottom: 24px; animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .diag-quiz { display: none; flex-direction: column; height: 100%; }
-        .diag-progress-container { background: var(--border-color); border-radius: 10px; height: 8px; overflow: hidden; margin-bottom: 12px; }
-        .diag-progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
+        
         .diag-question-card { background: var(--bg-surface); border-radius: var(--radius-card); padding: 28px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 24px; flex-grow: 1; }
-        .diag-options-list { display: flex; flex-direction: column; gap: 12px; }
-        .option-btn { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-base); border: 2px solid var(--border-color); border-radius: var(--radius-btn); cursor: pointer; transition: all 0.2s; font-family: var(--font-body); font-size: 1rem; color: var(--text-main); text-align: left; width: 100%; }
+        .option-btn { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-base); border: 2px solid var(--border-color); border-radius: var(--radius-btn); cursor: pointer; transition: all 0.2s; font-family: var(--font-body); font-size: 1rem; color: var(--text-main); text-align: left; width: 100%; margin-bottom: 12px; }
         .option-btn:hover { border-color: var(--primary); } .option-btn.selected { border-color: var(--primary); background: rgba(14, 165, 233, 0.05); }
         .option-indicator { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border-color); display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .option-btn.selected .option-indicator { border-color: var(--primary); background: var(--primary); }
         .option-btn.selected .option-indicator::after { content: ''; width: 8px; height: 8px; background: white; border-radius: 50%; }
         .option-btn.multi .option-indicator { border-radius: 6px; }
         .option-btn.multi.selected .option-indicator::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; background: none; }
+
+        /* Modal Grid Soal */
+        #questionGridModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .grid-box { background: var(--bg-surface); padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; }
+        .grid-numbers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; }
+        .grid-num { padding: 12px; border-radius: 8px; border: 2px solid var(--border-color); background: var(--bg-base); font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .grid-num.active { border-color: var(--primary); color: var(--primary); }
+        .grid-num.answered { background: var(--primary); color: white; border-color: var(--primary); }
+        .grid-num.flagged { background: var(--accent-yellow); color: white; border-color: var(--accent-yellow); }
+        
         .diag-loading { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; }
         .loader-dot { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; animation: bounce 0.6s infinite alternate; display: inline-block; margin: 0 4px; }
         @keyframes bounce { to { transform: translateY(-10px); opacity: 0.5; } }
@@ -132,7 +145,6 @@
 </head>
 <body>
 
-    <!-- MODAL PIN KEAMANAN -->
     <div id="pinModal">
         <div class="pin-box">
             <h2>🔒 Area Terbatas</h2>
@@ -142,6 +154,22 @@
                 <button class="btn btn-outline" style="color: var(--text-main); border-color: var(--border-color);" onclick="closePinModal()">Batal</button>
                 <button class="btn btn-yellow" onclick="verifyPin()">Masuk</button>
             </div>
+        </div>
+    </div>
+
+    <div id="questionGridModal">
+        <div class="grid-box">
+            <h2 style="font-size: 1.2rem; margin-bottom: 8px;">Daftar Soal</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Klik nomor untuk melompat ke soal.</p>
+            <div class="grid-numbers" id="gridNumbers">
+                <!-- Diisi JS -->
+            </div>
+            <div style="display: flex; gap: 16px; justify-content: center; font-size: 0.8rem; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 12px; height: 12px; background: var(--primary); border-radius: 4px;"></div> Dijawab</div>
+                <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 12px; height: 12px; background: var(--accent-yellow); border-radius: 4px;"></div> Ragu-ragu</div>
+                <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 12px; height: 12px; background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px;"></div> Kosong</div>
+            </div>
+            <button class="btn btn-yellow" style="width: 100%;" onclick="closeQuestionGrid()">Tutup</button>
         </div>
     </div>
 
@@ -156,7 +184,6 @@
             <li><a href="#" class="nav-item" onclick="switchView('view-tentang', this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> <span class="nav-text">Tentang</span></a></li>
         </ul>
         <div class="sidebar-bottom">
-            <!-- TOMBOL LOGOUT (Hanya muncul jika login) -->
             <a href="#" class="nav-item logout-btn" id="logoutBtn" onclick="logout()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 <span class="nav-text">Keluar (Guru)</span>
@@ -181,7 +208,6 @@
             </div>
         </header>
 
-        <!-- VIEW SISWA -->
         <div id="view-siswa" class="view active">
             <div class="grid-layout">
                 <div class="col-left">
@@ -208,7 +234,6 @@
             </div>
         </div>
 
-        <!-- VIEW GURU -->
         <div id="view-guru" class="view">
             <div class="grid-layout">
                 <div class="col-left">
@@ -226,7 +251,6 @@
             </div>
         </div>
 
-        <!-- VIEW ORANG TUA -->
         <div id="view-orangtua" class="view">
             <div class="grid-layout">
                 <div class="col-left"><div class="card"><div class="card-title">Ringkasan Minggu Ini</div><div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;"><div style="background:var(--bg-base); padding:16px; border-radius:8px;"><div style="font-size:1.5rem; font-weight:800; color:var(--primary);">4 Hari</div><div style="font-size:0.85rem; color:var(--text-muted);">Aktif Belajar</div></div><div style="background:var(--bg-base); padding:16px; border-radius:8px;"><div style="font-size:1.5rem; font-weight:800; color:var(--accent-mint);">87 Menit</div><div style="font-size:0.85rem; color:var(--text-muted);">Total Waktu</div></div></div></div></div>
@@ -234,7 +258,6 @@
             </div>
         </div>
 
-        <!-- VIEW ADMIN -->
         <div id="view-admin" class="view">
             <div class="grid-layout">
                 <div class="col-left">
@@ -251,7 +274,6 @@
             </div>
         </div>
 
-        <!-- VIEW TENTANG -->
         <div id="view-tentang" class="view">
             <div class="grid-layout" style="grid-template-columns: 1fr;">
                 <div class="card" style="text-align:center; padding:40px;">
@@ -264,38 +286,103 @@
         </div>
     </main>
 
-    <!-- OVERLAY DIAGNOSTIC -->
+    <!-- OVERLAY DIAGNOSTIC CBT -->
     <div id="diagnosticScreen">
-        <div class="diag-container">
-            <div id="diag-welcome" class="diag-welcome">
-                <div class="diag-welcome-icon">🚀</div>
-                <h1 style="font-family: var(--font-heading); font-size: 1.8rem; margin-bottom: 12px;">Yuk, Cek Kemampuanmu!</h1>
-                <p style="color: var(--text-muted); margin-bottom: 24px;">Ini bukan ujian untuk menentukan peringkat. Ini petualangan untuk mencari tahu di mana kekuatanmu.</p>
-                <div style="width: 100%; max-width: 300px; margin: 0 auto 24px;">
-                    <div class="input-group"><label>Nama Lengkap</label><input type="text" id="studentName" placeholder="Contoh: Ahmad Fauzi"></div>
-                    <div class="input-group"><label>Kelas</label><select id="studentClass"><option value="6A">Kelas 6A</option><option value="6B">Kelas 6B</option><option value="5A">Kelas 5A</option><option value="4A">Kelas 4A</option></select></div>
-                </div>
-                <button class="btn btn-yellow" style="width: 100%; font-size: 1.1rem; padding: 16px;" onclick="startQuiz()">Mulai Petualangan</button>
-                <button class="btn" style="width: 100%; background: transparent; color: var(--text-muted); margin-top: 12px;" onclick="closeDiagnostic()">Nanti saja</button>
+        
+        <!-- Layar 1: Welcome -->
+        <div id="diag-welcome" class="diag-welcome">
+            <div class="diag-welcome-icon">🚀</div>
+            <h1 style="font-family: var(--font-heading); font-size: 1.8rem; margin-bottom: 12px;">Yuk, Cek Kemampuanmu!</h1>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Ini bukan ujian untuk menentukan peringkat. Ini petualangan untuk mencari tahu di mana kekuatanmu.</p>
+            <div style="width: 100%; max-width: 300px; margin: 0 auto 24px;">
+                <div class="input-group"><label>Nama Lengkap</label><input type="text" id="studentName" placeholder="Contoh: Ahmad Fauzi"></div>
+                <div class="input-group"><label>Kelas</label><select id="studentClass"><option value="6A">Kelas 6A</option><option value="6B">Kelas 6B</option><option value="5A">Kelas 5A</option><option value="4A">Kelas 4A</option></select></div>
             </div>
-
-            <div id="diag-quiz" class="diag-quiz">
-                <div style="margin-bottom: 24px;"><div class="diag-progress-container"><div class="diag-progress-bar" id="progressBar"></div></div><div id="progressText" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-align: right;">Soal 1</div></div>
-                <div class="diag-question-card"><div id="questionTopic" style="display: inline-block; background: rgba(14, 165, 233, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-bottom: 16px;">Domain</div><div id="questionText" style="font-size: 1.1rem; font-weight: 600; line-height: 1.6; margin-bottom: 24px;">Memuat soal...</div><div id="optionsList" class="diag-options-list"></div></div>
-                <button class="btn btn-yellow" id="btnNext" style="width: 100%; font-size: 1.1rem; padding: 16px; opacity: 0.5; cursor: not-allowed;" onclick="nextQuestion()" disabled>Lanjut</button>
-            </div>
-
-            <div id="diag-loading" class="diag-loading"><div><span class="loader-dot"></span><span class="loader-dot" style="animation-delay:0.2s;"></span><span class="loader-dot" style="animation-delay:0.4s;"></span></div><h2 style="font-family: var(--font-heading); margin-top: 20px;">Mengirim data ke Guru...</h2></div>
-            <div id="diag-result" class="diag-result"><div style="font-size: 4rem; margin-bottom: 16px;">🎉</div><h2 style="font-family: var(--font-heading);">Hebat! Kamu Sudah Selesai.</h2><p style="color: var(--text-muted); margin-bottom: 24px;">Hasil tes ini sudah dikirim ke Guru dan masuk ke Dashboard-mu!</p><button class="btn btn-yellow" style="width: 100%; font-size: 1.1rem; padding: 16px;" onclick="closeDiagnostic()">Lihat Dashboard</button></div>
+            <button class="btn btn-yellow" style="width: 100%; font-size: 1.1rem; padding: 16px;" onclick="startQuiz()">Mulai Petualangan</button>
+            <button class="btn" style="width: 100%; background: transparent; color: var(--text-muted); margin-top: 12px;" onclick="closeDiagnostic()">Nanti saja</button>
         </div>
+
+        <!-- Layar 2: CBT Quiz Mode -->
+        <div id="diag-quiz" style="display: none; flex-direction: column; height: 100%;">
+            
+            <!-- CBT Header -->
+            <div class="cbt-header">
+                <div style="font-weight: 800; font-family: var(--font-heading); color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">📝</span> Simulasi TKA
+                </div>
+                <div class="cbt-timer" id="cbtTimer">
+                    ⏱ 15:00
+                </div>
+            </div>
+
+            <!-- CBT Body -->
+            <div class="cbt-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div id="questionTopic" style="display: inline-block; background: rgba(14, 165, 233, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">Domain</div>
+                    <div id="progressText" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">Soal 1 / 10</div>
+                </div>
+                
+                <div class="diag-question-card">
+                    <div id="questionText" style="font-size: 1.1rem; font-weight: 600; line-height: 1.6; margin-bottom: 24px;">Memuat soal...</div>
+                    <div id="optionsList" class="diag-options-list"></div>
+                </div>
+                
+                <!-- Ragu-ragu Toggle -->
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <button class="btn btn-outline" id="btnFlag" style="color: var(--text-main); border-color: var(--border-color); width: 100%;" onclick="toggleFlag()">
+                        🚩 Tandai Ragu-ragu
+                    </button>
+                </div>
+            </div>
+
+            <!-- CBT Footer -->
+            <div class="cbt-footer">
+                <button class="btn btn-outline" id="btnPrev" style="color: var(--text-main); border-color: var(--border-color); display: none;" onclick="prevQuestion()">Sebelumnya</button>
+                <button class="btn btn-yellow" id="btnNavGrid" style="color: var(--text-main); background: var(--border-color);" onclick="openQuestionGrid()">Daftar Soal</button>
+                <button class="btn btn-yellow" id="btnNext" onclick="nextQuestion()">Selanjutnya</button>
+            </div>
+        </div>
+
+        <!-- Layar 3: Review Sebelum Submit -->
+        <div id="diag-review" class="diag-welcome" style="display: none;">
+            <div style="font-size: 4rem; margin-bottom: 16px;">📋</div>
+            <h2 style="font-family: var(--font-heading);">Waktu Hampir Habis atau Selesai?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Pastikan Bapak/Ibu/Siswa sudah memeriksa semua jawaban. Jawaban yang kosong tidak akan mendapat poin.</p>
+            
+            <div style="background: var(--bg-surface); padding: 24px; border-radius: 16px; width: 100%; border: 1px solid var(--border-color); margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
+                    <span>Total Soal:</span> <strong id="reviewTotal">10</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
+                    <span>Sudah Dijawab:</span> <strong id="reviewAnswered" style="color: var(--accent-mint);">10</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                    <span>Ragu-ragu:</span> <strong id="reviewFlagged" style="color: var(--accent-yellow);">0</strong>
+                </div>
+            </div>
+
+            <button class="btn btn-yellow" style="width: 100%; font-size: 1.1rem; padding: 16px; margin-bottom: 12px;" onclick="submitQuiz()">Kumpulkan Jawaban & Kirim Data</button>
+            <button class="btn btn-outline" style="width: 100%; color: var(--text-main); border-color: var(--border-color);" onclick="backToQuiz()">Kembali ke Soal</button>
+        </div>
+
+        <!-- Layar 4: Loading -->
+        <div id="diag-loading" class="diag-loading">
+            <div><span class="loader-dot"></span><span class="loader-dot" style="animation-delay:0.2s;"></span><span class="loader-dot" style="animation-delay:0.4s;"></span></div>
+            <h2 style="font-family: var(--font-heading); margin-top: 20px;">Mengirim data ke Guru...</h2>
+        </div>
+
+        <!-- Layar 5: Result -->
+        <div id="diag-result" class="diag-result">
+            <div style="font-size: 4rem; margin-bottom: 16px;">🎉</div>
+            <h2 style="font-family: var(--font-heading);">Hebat! Kamu Sudah Selesai.</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Hasil tes ini sudah dikirim ke Guru dan masuk ke Dashboard-mu!</p>
+            <button class="btn btn-yellow" style="width: 100%; font-size: 1.1rem; padding: 16px;" onclick="closeDiagnostic()">Lihat Dashboard</button>
+        </div>
+
     </div>
 
     <script>
         const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbx_u6hsHuXa6e9pCPY4NxOxPmZE4auH0Ll7GjQu3iWNECDuDFp5vLwXnahR01DjJF7Q/exec";
-        
-        // ==========================================
-        // GANTI PIN KEAMANAN DI SINI (Bebas angka/huruf)
-        // ==========================================
         const PIN_RAHASIA = "123456"; 
         let targetViewAfterPin = "";
 
@@ -307,6 +394,7 @@
         const pageSubtitle = document.getElementById('pageSubtitle');
         const pinModal = document.getElementById('pinModal');
         const logoutBtn = document.getElementById('logoutBtn');
+        const diagScreen = document.getElementById('diagnosticScreen');
         
         const pageConfig = {
             'view-siswa': { title: 'Halo, Siswa! 👋', subtitle: 'Selamat datang di Math Ready SD' },
@@ -316,188 +404,128 @@
             'view-tentang': { title: 'Tentang Platform', subtitle: 'Informasi & Profil Pengembang' }
         };
 
-        // Cek sesi login saat halaman dimuat
-        function checkLoginStatus() {
-            if (sessionStorage.getItem('isAuthorized') === 'true') {
-                logoutBtn.style.display = 'flex';
-            } else {
-                logoutBtn.style.display = 'none';
-            }
-        }
+        function checkLoginStatus() { if (sessionStorage.getItem('isAuthorized') === 'true') { logoutBtn.style.display = 'flex'; } else { logoutBtn.style.display = 'none'; } }
         checkLoginStatus();
 
         function switchView(viewId, el = null) {
-            // INTERSEP KEAMANAN
             if ((viewId === 'view-guru' || viewId === 'view-admin') && sessionStorage.getItem('isAuthorized') !== 'true') {
-                targetViewAfterPin = viewId;
-                pinModal.style.display = 'flex';
-                document.getElementById('pinInput').value = '';
-                document.getElementById('pinInput').focus();
-                return; // Hentikan eksekusi, jangan buka view
+                targetViewAfterPin = viewId; pinModal.style.display = 'flex'; document.getElementById('pinInput').value = ''; document.getElementById('pinInput').focus(); return; 
             }
-
             views.forEach(v => v.classList.remove('active'));
-            document.getElementById('view-' + viewId.split('-')[1]).classList.add('active');
+            document.getElementById(viewId).classList.add('active');
             navItems.forEach(nav => nav.classList.remove('active'));
             if (el) el.classList.add('active');
-            else {
-                const activeNav = Array.from(navItems).find(n => n.getAttribute('onclick')?.includes(viewId));
-                if (activeNav) activeNav.classList.add('active');
-            }
-            if (pageConfig[viewId]) {
-                pageTitle.innerText = pageConfig[viewId].title;
-                pageSubtitle.innerText = pageConfig[viewId].subtitle;
-            }
+            else { const activeNav = Array.from(navItems).find(n => n.getAttribute('onclick')?.includes(viewId)); if (activeNav) activeNav.classList.add('active'); }
+            if (pageConfig[viewId]) { pageTitle.innerText = pageConfig[viewId].title; pageSubtitle.innerText = pageConfig[viewId].subtitle; }
             if (window.innerWidth <= 768) sidebar.classList.remove('mobile-open');
-            
             if (viewId === 'view-guru') { fetchGuruData(); }
             if (viewId === 'view-admin') fetchAdminData();
         }
 
-        // FUNGSI VERIFIKASI PIN
         function verifyPin() {
-            const input = document.getElementById('pinInput').value;
-            if (input === PIN_RAHASIA) {
-                sessionStorage.setItem('isAuthorized', 'true');
-                logoutBtn.style.display = 'flex';
-                closePinModal();
-                // Lanjutkan ke halaman yang dituju
-                switchView(targetViewAfterPin);
-            } else {
-                alert("PIN Salah! Akses ditolak.");
-                document.getElementById('pinInput').value = '';
-                document.getElementById('pinInput').focus();
-            }
+            if (document.getElementById('pinInput').value === PIN_RAHASIA) {
+                sessionStorage.setItem('isAuthorized', 'true'); logoutBtn.style.display = 'flex'; closePinModal(); switchView(targetViewAfterPin);
+            } else { alert("PIN Salah! Akses ditolak."); document.getElementById('pinInput').value = ''; document.getElementById('pinInput').focus(); }
         }
-
-        function closePinModal() {
-            pinModal.style.display = 'none';
-        }
-
-        // FUNGSI LOGOUT
-        function logout() {
-            sessionStorage.removeItem('isAuthorized');
-            logoutBtn.style.display = 'none';
-            switchView('view-siswa');
-            alert("Anda telah keluar dari Mode Guru/Admin.");
-        }
+        function closePinModal() { pinModal.style.display = 'none'; }
+        function logout() { sessionStorage.removeItem('isAuthorized'); logoutBtn.style.display = 'none'; switchView('view-siswa'); alert("Anda telah keluar."); }
 
         document.getElementById('collapseBtn').addEventListener('click', (e) => { e.preventDefault(); sidebar.classList.toggle('collapsed'); });
         document.getElementById('mobileMenuBtn').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
         document.getElementById('themeToggle').addEventListener('click', (e) => {
             e.preventDefault();
-            if (html.getAttribute('data-theme') === 'dark') { html.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); } 
-            else { html.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
-            renderDashboardCharts(); 
-            if(document.getElementById('view-guru').classList.contains('active')) fetchGuruData(); 
+            if (html.getAttribute('data-theme') === 'dark') { html.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); } else { html.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+            renderDashboardCharts(); if(document.getElementById('view-guru').classList.contains('active')) fetchGuruData(); 
         });
         if (localStorage.getItem('theme') === 'dark') html.setAttribute('data-theme', 'dark');
 
         // === TARIK DATA GURU ===
         let teacherChartInstance = null;
         async function fetchGuruData() {
-            const tbody = document.getElementById('tableGuruBody');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Memuat data...</td></tr>';
+            const tbody = document.getElementById('tableGuruBody'); tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Memuat data...</td></tr>';
             try {
-                const response = await fetch(URL_APPS_SCRIPT);
-                const data = await response.json();
-                tbody.innerHTML = '';
-                
-                if(data.length === 0) { 
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Belum ada data.</td></tr>'; 
-                    document.getElementById('totalSiswa').innerText = '0';
-                    renderTeacherChart([0,0,0,0]);
-                    return; 
-                }
-                
-                data.reverse();
-                document.getElementById('totalSiswa').innerText = data.length;
-
-                let totalBilangan = 0, totalGeometri = 0, totalData = 0, totalPenalaran = 0;
-                
+                const response = await fetch(URL_APPS_SCRIPT); const data = await response.json(); tbody.innerHTML = '';
+                if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Belum ada data.</td></tr>'; document.getElementById('totalSiswa').innerText = '0'; renderTeacherChart([0,0,0,0]); return; }
+                data.reverse(); document.getElementById('totalSiswa').innerText = data.length;
+                let tB=0, tG=0, tD=0, tP=0;
                 data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    const readiness = parseInt(row[7]) || 0;
+                    const tr = document.createElement('tr'); const readiness = parseInt(row[7]) || 0;
                     const status = readiness >= 70 ? '<span class="tag tag-green">Tuntas</span>' : '<span class="tag tag-red">Remedial</span>';
                     tr.innerHTML = `<td><strong>${row[1]}</strong></td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[6]}</td><td><strong>${readiness}</strong></td><td>${status}</td>`;
                     tbody.appendChild(tr);
-
-                    totalBilangan += parseInt(row[3]) || 0;
-                    totalGeometri += parseInt(row[4]) || 0;
-                    totalData += parseInt(row[5]) || 0;
-                    totalPenalaran += parseInt(row[6]) || 0;
+                    tB += parseInt(row[3]) || 0; tG += parseInt(row[4]) || 0; tD += parseInt(row[5]) || 0; tP += parseInt(row[6]) || 0;
                 });
-
-                const avgBilangan = Math.round(totalBilangan / data.length);
-                const avgGeometri = Math.round(totalGeometri / data.length);
-                const avgData = Math.round(totalData / data.length);
-                const avgPenalaran = Math.round(totalPenalaran / data.length);
-
-                renderTeacherChart([avgBilangan, avgGeometri, avgData, avgPenalaran]);
-
-            } catch (error) { 
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Gagal memuat data.</td></tr>'; 
-            }
+                renderTeacherChart([Math.round(tB/data.length), Math.round(tG/data.length), Math.round(tD/data.length), Math.round(tP/data.length)]);
+            } catch (error) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Gagal memuat data.</td></tr>'; }
         }
-
         function renderTeacherChart(chartData = [0,0,0,0]) {
             const isDark = html.getAttribute('data-theme') === 'dark';
             if (teacherChartInstance) teacherChartInstance.destroy();
-            
             const ctx = document.getElementById('teacherChart').getContext('2d');
-            teacherChartInstance = new Chart(ctx, { 
-                type: 'bar', 
-                data: { 
-                    labels: ['Bilangan', 'Geometri', 'Data', 'Penalaran'], 
-                    datasets: [{ 
-                        label: 'Rata-rata Kelas (%)', 
-                        data: chartData, 
-                        backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B', '#F43F5E'], 
-                        borderRadius: 6 
-                    }] 
-                }, 
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    animation: { duration: 1000, easing: 'easeOutQuart' },
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        y: { beginAtZero: true, max: 100, grid: { color: isDark ? '#334155' : '#E2E8F0' }, ticks: { color: isDark ? '#F8FAFC' : '#0F172A' } }, 
-                        x: { ticks: { color: isDark ? '#F8FAFC' : '#0F172A' } } 
-                    } 
-                } 
-            });
+            teacherChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['Bilangan', 'Geometri', 'Data', 'Penalaran'], datasets: [{ label: 'Rata-rata Kelas (%)', data: chartData, backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B', '#F43F5E'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 1000, easing: 'easeOutQuart' }, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: isDark ? '#334155' : '#E2E8F0' }, ticks: { color: isDark ? '#F8FAFC' : '#0F172A' } }, x: { ticks: { color: isDark ? '#F8FAFC' : '#0F172A' } } } } });
         }
 
         // === TARIK DATA SOAL (ADMIN) ===
         async function fetchAdminData() {
-            const tbody = document.getElementById('tableSoalBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat soal...</td></tr>';
+            const tbody = document.getElementById('tableSoalBody'); tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat soal...</td></tr>';
             try {
-                const response = await fetch(URL_APPS_SCRIPT + "?action=getQuestions");
-                const data = await response.json();
-                tbody.innerHTML = '';
+                const response = await fetch(URL_APPS_SCRIPT + "?action=getQuestions"); const data = await response.json(); tbody.innerHTML = '';
                 if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada soal.</td></tr>'; return; }
-                data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[8]}</td>`;
-                    tbody.appendChild(tr);
-                });
+                data.forEach(row => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[8]}</td>`; tbody.appendChild(tr); });
             } catch (error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat soal.</td></tr>'; }
         }
 
-        // === LOGIKA DIAGNOSTIC & PENILAIAN OTOMATIS ===
+        // === LOGIKA CBT (COMPUTER BASED TEST) ===
         let questionsData = [];
         let userAnswers = []; 
+        let flaggedQuestions = []; // Menyimpan index soal yang ditandai ragu-ragu
         let currentQuestionIndex = 0;
         let selectedOptions = [];
         let studentName = "";
         let studentClass = "";
-        const diagScreen = document.getElementById('diagnosticScreen');
+        
+        // Variabel Timer
+        let cbtTimerInterval = null;
+        let cbtTimeLeft = 15 * 60; // 15 Menit dalam detik
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `⏱ ${m}:${s}`;
+        }
+
+        function startCbtTimer() {
+            cbtTimeLeft = 15 * 60; // Reset ke 15 menit
+            document.getElementById('cbtTimer').innerText = formatTime(cbtTimeLeft);
+            document.getElementById('cbtTimer').style.color = 'var(--accent-coral)';
+            document.getElementById('cbtTimer').style.background = 'rgba(244,63,94,0.1)';
+
+            if(cbtTimerInterval) clearInterval(cbtTimerInterval);
+            
+            cbtTimerInterval = setInterval(() => {
+                cbtTimeLeft--;
+                document.getElementById('cbtTimer').innerText = formatTime(cbtTimeLeft);
+                
+                // Jika waktu tersisa 5 menit, ubah warna menjadi merah menyala
+                if (cbtTimeLeft <= 300) {
+                    document.getElementById('cbtTimer').style.color = 'white';
+                    document.getElementById('cbtTimer').style.background = 'var(--accent-coral)';
+                    document.getElementById('cbtTimer').style.animation = 'pulse 1s infinite alternate';
+                }
+
+                if (cbtTimeLeft <= 0) {
+                    clearInterval(cbtTimerInterval);
+                    alert("Waktu Habis! Jawaban akan otomatis dikumpulkan.");
+                    submitQuiz();
+                }
+            }, 1000);
+        }
 
         async function openDiagnostic(el = null) {
-            diagScreen.style.display = 'block';
+            diagScreen.style.display = 'flex';
             document.getElementById('diag-welcome').style.display = 'flex';
             document.getElementById('diag-quiz').style.display = 'none';
+            document.getElementById('diag-review').style.display = 'none';
             document.getElementById('diag-loading').style.display = 'flex'; 
             document.getElementById('diag-result').style.display = 'none';
             
@@ -505,11 +533,7 @@
                 const response = await fetch(URL_APPS_SCRIPT + "?action=getQuestions");
                 const data = await response.json();
                 questionsData = data.map(row => {
-                    return {
-                        id: row[0], domain: row[1], type: row[2], question: row[3],
-                        options: [row[4], row[5], row[6], row[7]],
-                        correctAnswer: row[8].toString().split(',').map(Number)
-                    };
+                    return { id: row[0], domain: row[1], type: row[2], question: row[3], options: [row[4], row[5], row[6], row[7]], correctAnswer: row[8].toString().split(',').map(Number) };
                 });
             } catch (e) { alert("Gagal memuat soal."); questionsData = []; }
 
@@ -519,7 +543,10 @@
             if (el) el.classList.add('active');
         }
 
-        function closeDiagnostic() { diagScreen.style.display = 'none'; switchView('view-siswa'); renderDashboardCharts(); }
+        function closeDiagnostic() { 
+            if(cbtTimerInterval) clearInterval(cbtTimerInterval);
+            diagScreen.style.display = 'none'; switchView('view-siswa'); renderDashboardCharts(); 
+        }
 
         function startQuiz() {
             studentName = document.getElementById('studentName').value.trim();
@@ -530,31 +557,55 @@
             document.getElementById('pageTitle').innerText = `Halo, ${studentName.split(' ')[0]}! 👋`;
             document.getElementById('diag-welcome').style.display = 'none';
             document.getElementById('diag-quiz').style.display = 'flex';
+            
             currentQuestionIndex = 0;
             userAnswers = []; 
+            flaggedQuestions = []; 
+            
+            startCbtTimer();
             renderQuestion();
         }
 
         function renderQuestion() {
             const q = questionsData[currentQuestionIndex];
-            selectedOptions = [];
-            document.getElementById('progressBar').style.width = `${((currentQuestionIndex) / questionsData.length) * 100}%`;
-            document.getElementById('progressText').innerText = `Soal ${currentQuestionIndex + 1} dari ${questionsData.length}`;
+            // Set pilihan aktif berdasarkan jawaban sebelumnya (jika ada)
+            selectedOptions = userAnswers[currentQuestionIndex] ? [...userAnswers[currentQuestionIndex]] : [];
+            
+            document.getElementById('progressText').innerText = `Soal ${currentQuestionIndex + 1} / ${questionsData.length}`;
             document.getElementById('questionTopic').innerText = q.domain;
             document.getElementById('questionText').innerText = q.question;
-            const btnNext = document.getElementById('btnNext');
-            btnNext.disabled = true; btnNext.style.opacity = '0.5'; btnNext.style.cursor = 'not-allowed';
-            btnNext.innerText = (currentQuestionIndex === questionsData.length - 1) ? "Selesai & Kirim Data" : "Lanjut";
             
+            // Tombol Prev/Next State
+            document.getElementById('btnPrev').style.display = currentQuestionIndex === 0 ? 'none' : 'flex';
+            document.getElementById('btnNext').innerText = (currentQuestionIndex === questionsData.length - 1) ? "Selesai & Review" : "Selanjutnya";
+            
+            // Tombol Ragu-ragu State
+            const btnFlag = document.getElementById('btnFlag');
+            if(flaggedQuestions.includes(currentQuestionIndex)) {
+                btnFlag.style.background = 'var(--accent-yellow)';
+                btnFlag.style.color = 'white';
+                btnFlag.style.borderColor = 'var(--accent-yellow)';
+                btnFlag.innerHTML = '🚩 Hapus Tanda Ragu-ragu';
+            } else {
+                btnFlag.style.background = 'transparent';
+                btnFlag.style.color = 'var(--text-main)';
+                btnFlag.style.borderColor = 'var(--border-color)';
+                btnFlag.innerHTML = '🚩 Tandai Ragu-ragu';
+            }
+
+            // Render Opsi
             const optionsList = document.getElementById('optionsList');
             optionsList.innerHTML = '';
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
                 btn.className = `option-btn ${q.type === 'PGK' ? 'multi' : ''}`;
+                if(selectedOptions.includes(index)) btn.classList.add('selected');
                 btn.innerHTML = `<div class="option-indicator"></div><span>${opt}</span>`;
                 btn.onclick = () => handleOptionClick(index, q.type, btn);
                 optionsList.appendChild(btn);
             });
+            
+            updateGridColors();
         }
 
         function handleOptionClick(index, type, btnElement) {
@@ -566,50 +617,100 @@
                 if (selectedOptions.includes(index)) { selectedOptions = selectedOptions.filter(i => i !== index); btnElement.classList.remove('selected'); } 
                 else { selectedOptions.push(index); btnElement.classList.add('selected'); }
             }
-            const btnNext = document.getElementById('btnNext');
-            btnNext.disabled = selectedOptions.length === 0;
-            btnNext.style.opacity = selectedOptions.length === 0 ? '0.5' : '1';
-            btnNext.style.cursor = selectedOptions.length === 0 ? 'not-allowed' : 'pointer';
+            userAnswers[currentQuestionIndex] = [...selectedOptions];
+            updateGridColors();
+        }
+
+        function toggleFlag() {
+            if(flaggedQuestions.includes(currentQuestionIndex)) {
+                flaggedQuestions = flaggedQuestions.filter(i => i !== currentQuestionIndex);
+            } else {
+                flaggedQuestions.push(currentQuestionIndex);
+            }
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questionsData.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showReviewScreen();
+            }
+        }
+
+        function openQuestionGrid() {
+            const grid = document.getElementById('gridNumbers');
+            grid.innerHTML = '';
+            questionsData.forEach((_, i) => {
+                const div = document.createElement('div');
+                div.className = 'grid-num';
+                if (i === currentQuestionIndex) div.classList.add('active');
+                if (userAnswers[i] && userAnswers[i].length > 0) div.classList.add('answered');
+                if (flaggedQuestions.includes(i)) div.classList.add('flagged');
+                
+                div.innerText = i + 1;
+                div.onclick = () => {
+                    currentQuestionIndex = i;
+                    renderQuestion();
+                    closeQuestionGrid();
+                };
+                grid.appendChild(div);
+            });
+            document.getElementById('questionGridModal').style.display = 'flex';
+        }
+        
+        function closeQuestionGrid() { document.getElementById('questionGridModal').style.display = 'none'; }
+
+        function updateGridColors() {
+            // Fungsi untuk menyegarkan tampilan grid jika sedang terbuka (opsional)
+        }
+
+        function showReviewScreen() {
+            document.getElementById('diag-quiz').style.display = 'none';
+            document.getElementById('diag-review').style.display = 'flex';
+            
+            let answeredCount = userAnswers.filter(a => a && a.length > 0).length;
+            document.getElementById('reviewTotal').innerText = questionsData.length;
+            document.getElementById('reviewAnswered').innerText = answeredCount;
+            document.getElementById('reviewFlagged').innerText = flaggedQuestions.length;
+        }
+
+        function backToQuiz() {
+            document.getElementById('diag-review').style.display = 'none';
+            document.getElementById('diag-quiz').style.display = 'flex';
         }
 
         function calculateScores() {
-            let domainStats = {
-                "Bilangan": { correct: 0, total: 0 },
-                "Geometri & Pengukuran": { correct: 0, total: 0 },
-                "Data": { correct: 0, total: 0 },
-                "Penalaran": { correct: 0, total: 0 }
-            };
+            let domainStats = { "Bilangan": { correct: 0, total: 0 }, "Geometri & Pengukuran": { correct: 0, total: 0 }, "Data": { correct: 0, total: 0 }, "Penalaran": { correct: 0, total: 0 } };
             let totalCorrect = 0;
 
             questionsData.forEach((q, index) => {
                 let domain = q.domain;
                 if (!domainStats[domain]) domainStats[domain] = { correct: 0, total: 0 };
-                
                 domainStats[domain].total += 1;
 
                 let ua = userAnswers[index] || [];
                 let ca = q.correctAnswer || [];
-
-                ua.sort((a,b) => a-b);
-                ca.sort((a,b) => a-b);
-
+                ua.sort((a,b) => a-b); ca.sort((a,b) => a-b);
                 let isCorrect = ua.length === ca.length && ua.every((val, i) => val === ca[i]);
 
-                if (isCorrect) {
-                    domainStats[domain].correct += 1;
-                    totalCorrect += 1;
-                }
+                if (isCorrect) { domainStats[domain].correct += 1; totalCorrect += 1; }
             });
 
             let scores = { bilangan: 0, geometri: 0, data: 0, penalaran: 0, readiness: 0 };
-
             if (domainStats["Bilangan"].total > 0) scores.bilangan = Math.round((domainStats["Bilangan"].correct / domainStats["Bilangan"].total) * 100);
             if (domainStats["Geometri & Pengukuran"].total > 0) scores.geometri = Math.round((domainStats["Geometri & Pengukuran"].correct / domainStats["Geometri & Pengukuran"].total) * 100);
             if (domainStats["Data"].total > 0) scores.data = Math.round((domainStats["Data"].correct / domainStats["Data"].total) * 100);
             if (domainStats["Penalaran"].total > 0) scores.penalaran = Math.round((domainStats["Penalaran"].correct / domainStats["Penalaran"].total) * 100);
-
             scores.readiness = Math.round((totalCorrect / questionsData.length) * 100);
-
             return scores;
         }
 
@@ -618,47 +719,35 @@
             questionsData.forEach((q, index) => {
                 let ua = userAnswers[index] || [];
                 let ca = q.correctAnswer || [];
-                ua.sort((a,b) => a-b);
-                ca.sort((a,b) => a-b);
+                ua.sort((a,b) => a-b); ca.sort((a,b) => a-b);
                 let isCorrect = ua.length === ca.length && ua.every((val, i) => val === ca[i]);
-
                 if (!isCorrect) {
                     let studentAnswerText = ua.map(idx => q.options[idx]).join(', ') || "Tidak dijawab";
                     let correctAnswerText = ca.map(idx => q.options[idx]).join(', ');
-                    mistakes.push({
-                        domain: q.domain,
-                        question: q.question,
-                        studentAnswer: studentAnswerText,
-                        correctAnswer: correctAnswerText
-                    });
+                    mistakes.push({ domain: q.domain, question: q.question, studentAnswer: studentAnswerText, correctAnswer: correctAnswerText });
                 }
             });
             return mistakes;
         }
 
-        async function nextQuestion() {
-            userAnswers[currentQuestionIndex] = [...selectedOptions];
+        async function submitQuiz() {
+            if(cbtTimerInterval) clearInterval(cbtTimerInterval);
+            
+            document.getElementById('diag-review').style.display = 'none';
+            document.getElementById('diag-loading').style.display = 'flex';
+            
+            const scores = calculateScores();
+            const mistakes = getWrongQuestions();
+            
+            localStorage.setItem('math_ready_scores', JSON.stringify(scores));
+            localStorage.setItem('math_ready_mistakes', JSON.stringify(mistakes));
+            localStorage.setItem('student_name', studentName);
 
-            if (currentQuestionIndex < questionsData.length - 1) {
-                currentQuestionIndex++; renderQuestion();
-            } else {
-                document.getElementById('progressBar').style.width = '100%';
-                document.getElementById('diag-quiz').style.display = 'none';
-                document.getElementById('diag-loading').style.display = 'flex';
-                
-                const scores = calculateScores();
-                const mistakes = getWrongQuestions();
-                
-                localStorage.setItem('math_ready_scores', JSON.stringify(scores));
-                localStorage.setItem('math_ready_mistakes', JSON.stringify(mistakes));
-                localStorage.setItem('student_name', studentName);
+            const dataToSend = { nama: studentName, kelas: studentClass, bilangan: scores.bilangan, geometri: scores.geometri, skorData: scores.data, penalaran: scores.penalaran, readiness: scores.readiness };
 
-                const dataToSend = { nama: studentName, kelas: studentClass, bilangan: scores.bilangan, geometri: scores.geometri, skorData: scores.data, penalaran: scores.penalaran, readiness: scores.readiness };
+            try { await fetch(URL_APPS_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) }); } catch (error) {}
 
-                try { await fetch(URL_APPS_SCRIPT, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToSend) }); } catch (error) {}
-
-                setTimeout(() => { document.getElementById('diag-loading').style.display = 'none'; document.getElementById('diag-result').style.display = 'flex'; }, 1500);
-            }
+            setTimeout(() => { document.getElementById('diag-loading').style.display = 'none'; document.getElementById('diag-result').style.display = 'flex'; }, 1500);
         }
 
         // === CHART DASHBOARD SISWA & BUKU KESALAHAN ===
@@ -684,35 +773,19 @@
                 const ctx = document.getElementById(stat.id).getContext('2d');
                 new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [stat.value, 100 - stat.value], backgroundColor: [stat.color, trackColor], borderWidth: 0, cutout: '80%' }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 1500 }, plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
             });
-
             renderMistakes(); 
         }
 
         function renderMistakes() {
             const container = document.getElementById('mistakeList');
             const savedMistakes = localStorage.getItem('math_ready_mistakes');
-            
-            if (!savedMistakes) {
-                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding: 20px 0;">Belum ada data kesalahan. Ayo kerjakan tes untuk melihat di mana letak kesulitanmu!</p>';
-                return;
-            }
-
+            if (!savedMistakes) { container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding: 20px 0;">Belum ada data kesalahan. Ayo kerjakan tes!</p>'; return; }
             const mistakes = JSON.parse(savedMistakes);
-            if (mistakes.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding: 20px 0;"><div style="font-size: 2.5rem; margin-bottom: 8px;">🌟</div><p style="font-size:0.9rem; color:var(--accent-mint); font-weight:700;">Luar biasa! Semua jawabanmu benar.</p></div>';
-                return;
-            }
-
+            if (mistakes.length === 0) { container.innerHTML = '<div style="text-align:center; padding: 20px 0;"><div style="font-size: 2.5rem; margin-bottom: 8px;">🌟</div><p style="font-size:0.9rem; color:var(--accent-mint); font-weight:700;">Luar biasa! Semua jawabanmu benar.</p></div>'; return; }
             container.innerHTML = '';
             mistakes.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'mistake-box';
-                div.innerHTML = `
-                    <h4>${m.domain}</h4>
-                    <p style="font-weight: 700; margin-bottom: 8px; color: var(--text-main); font-size: 0.85rem;">${m.question}</p>
-                    <p style="color: var(--accent-coral); margin-bottom: 4px; font-weight: 600;">❌ Jawabanmu: ${m.studentAnswer}</p>
-                    <p style="color: var(--accent-mint); font-weight: 600;">✅ Kunci: ${m.correctAnswer}</p>
-                `;
+                const div = document.createElement('div'); div.className = 'mistake-box';
+                div.innerHTML = `<h4>${m.domain}</h4><p style="font-weight: 700; margin-bottom: 8px; color: var(--text-main); font-size: 0.85rem;">${m.question}</p><p style="color: var(--accent-coral); margin-bottom: 4px; font-weight: 600;">❌ Jawabanmu: ${m.studentAnswer}</p><p style="color: var(--accent-mint); font-weight: 600;">✅ Kunci: ${m.correctAnswer}</p>`;
                 container.appendChild(div);
             });
         }
